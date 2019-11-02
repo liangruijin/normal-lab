@@ -1,0 +1,63 @@
+#pragma comment(lib,"opencv_world411d.lib")
+#include<opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
+#include<iostream>
+#include<math.h>
+
+using namespace cv;
+using namespace std;
+
+
+Mat src;
+const char* OUTPUT_TITLE = "Operrator Result";
+double Udark(int value);
+double Ugray(int value);
+double Ubright(int value);
+int fuzzy(int value);
+int main(int argc, char** argv) {
+	src = imread("C:/Users/liangrui/Desktop/爱因斯坦.tif");
+	if (!src.data) {
+		printf("could not load image...\n");
+		return -1;
+	}
+
+	char INPUT_TITLE[] = "input image";
+	namedWindow(INPUT_TITLE, CV_WINDOW_AUTOSIZE);
+	namedWindow(OUTPUT_TITLE, CV_WINDOW_AUTOSIZE);
+	cvtColor(src, src, CV_BGR2GRAY);
+	imshow(INPUT_TITLE, src);
+	int row = src.rows;
+	int col = src.cols;
+	Mat dst = Mat::zeros(src.size(), src.type());
+	for (int i = 0; i < row; i++) {
+		for (int j = 0; j < col; j++) {
+			dst.at<uchar>(i, j) = saturate_cast<uchar>(fuzzy(src.at <uchar>(i, j)));
+		}
+	}
+	imshow(OUTPUT_TITLE, dst);
+	waitKey(0);
+	return 0;
+}
+
+double Udark(int value) {
+	if (value < 85) return 1;
+	else if (value >= 127)  return 0;
+	else  return  (127 - value)/ 42.00;
+}
+double  Ugray(int value) {
+	if (value < 85) return 0;
+	else if (value >= 170) return 1;
+	else if (value <= 127) return (value - 85) / 42.00;
+	else return  (170 - value) / 43.00;
+}
+double Ubright(int value) {
+	if (value < 127) return 0;
+	else if (value >= 170)  return 1;
+	else  return  (value-127)/ 43.00;
+}
+
+int fuzzy(int value) {
+	int theResult = 0;
+	theResult = (Udark(value) * 0.001 + Ugray(value) * 127 + Ubright(value) * 255) / (Udark(value) + Ubright(value) + Ugray(value));
+	return theResult;
+}
