@@ -1,0 +1,31 @@
+int main(int argc, char** argv) {
+	CascadeClassifier face_cascade;
+	String face_lbp_date = "C:/TheDownloadSoft/opencv/build/etc/lbpcascades/lbpcascade_frontalface_improved.xml";
+	
+
+	if (!face_cascade.load(face_lbp_date)) {
+		printf("could not load LBP Face date...\n");
+		return -1;
+	}
+
+
+	Mat src = imread("C:/Users/liangrui/Desktop/图库/未标题111.jpg");
+	if (src.empty()) {
+		printf("could not load image...\n");
+		return -1;
+	}
+	namedWindow("input image", CV_WINDOW_AUTOSIZE);
+	imshow("input image", src);
+	Mat gray_src;
+	cvtColor(src, gray_src, COLOR_BGR2GRAY);
+
+	vector<Rect>faces;
+	face_cascade.detectMultiScale(gray_src, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30,30));
+	for (size_t t = 0; t < faces.size(); t++) {
+		rectangle(src, faces[t], Scalar(0, 0, 255), 2, 8, 0);
+	}
+	namedWindow("result", CV_WINDOW_NORMAL);
+	imshow("result", src);
+	waitKey(0);
+	return 0;
+}
