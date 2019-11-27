@@ -1,0 +1,71 @@
+if (pDetection->IstheBackground(matBrightDiffBlackModelRegion, Mx, My)) {            //在背景上的检验
+						if (abs(matComRegion.at<uchar>(Rx, Ry) - matMeanModelRegion.at<uchar>(Mx, My)) > pDetection->getBsubBValue(matBrightDiffBlackModelRegion, Mx, My, 1, 1)) {
+							//if (pDetection->IsSuspectinBackground(matComRegion, matMeanModelRegion, Rx, Ry, Mx, My, matBrightDiffBlackModelRegion))
+							{
+								if (pDetection->IsSpecialFlaw(matComRegion, matMeanModelRegion, Mx, My, Rx, Ry, matBrightDiffBlackModelRegion)) {
+									result.at<uchar>(Rx, Ry) = 255;
+								}
+
+
+								/*Point pt1_model, pt2_model;
+								if (pDetection->searchFuturePoint_model(modelFuture, Mx, My, pt1_model, pt2_model))
+								{
+									if (pDetection->searchFuturePoint_real(RealFuture, pt1_model, pt2_model, nShiftX, nShiftY, matComRegion, matMeanModelRegion)) {
+										pDetection->UpdateCoordinate(Rx, Ry, Mx, My, nShiftX, nShiftY);
+
+										if (abs(matComRegion.at<uchar>(Rx, Ry) - matMeanModelRegion.at<uchar>(Mx, My)) > pDetection->getBsubBValue(matBrightDiffBlackModelRegion, Mx, My, 2, 1))
+										{
+											result.at<uchar>(Rx, Ry) = 100; count_rightButError++;
+										}
+									}
+									else {
+										result.at<uchar>(Rx, Ry) = 180; count_nofeatureInreal++;
+									}
+								}
+								else {
+									if (pDetection->IsSpecialFlaw(matComRegion, matMeanModelRegion, Mx, My, Rx, Ry, matBrightDiffBlackModelRegion)) {
+										result.at<uchar>(Rx, Ry) = 255;
+										count_nofeatureInmodel++;
+									}
+									 
+	
+								}*/
+								
+							}
+						}
+					}
+					else {                                                                                 //不在背景上的检验
+
+
+						if (abs(matRealTime2.at<uchar>(Rx, Ry) - matMeanModelRegion.at<uchar>(Mx, My)) > pDetection->getBsubBValue(matBrightDiffBlackModelRegion, Mx, My,8, 1.2))
+							if (pDetection->IsSuspectinBackground(matRealTime2, matMeanModelRegion, Rx, Ry, Mx, My, matBrightDiffBlackModelRegion))
+						{
+							Point pt1_model, pt2_model;
+							if (pDetection->searchFuturePoint_model(modelFuture, Mx, My, pt1_model, pt2_model)) {
+								if (pDetection->searchFuturePoint_real(RealFuture, pt1_model, pt2_model, nShiftX, nShiftY, matComRegion, matMeanModelRegion)) {
+									pDetection->UpdateCoordinate(Rx, Ry, Mx, My, nShiftX, nShiftY);
+									if (abs(matComRegion.at<uchar>(Rx, Ry) - matMeanModelRegion.at<uchar>(Mx, My)) > pDetection->getBsubBValue(matBrightDiffBlackModelRegion, Mx, My, 8, 1.2))
+									{
+
+
+										result.at<uchar>(Rx, Ry) = 100; count_rightButError_bianyuan++;
+										cout << "Mx:" << Mx << "  " << "My:" << My <<"  " << "Rx:" << Rx << "  " << "Ry:" << Ry << endl; 
+										cout << (int)matMeanModelRegion.at<uchar>(Mx - 2, My) << "   " << (int)matComRegion.at<uchar>(Rx - 2, Ry) << "  " << (int)matBrightDiffBlackModelRegion.at<uchar>(Mx - 2, My) << endl;
+										cout << (int)matMeanModelRegion.at<uchar>(Mx-1, My) << "   " << (int)matComRegion.at<uchar>(Rx-1, Ry) << "  " << (int)matBrightDiffBlackModelRegion.at<uchar>(Mx-1, My) << endl;
+										cout << (int)matMeanModelRegion.at<uchar>(Mx, My) << "   " << (int)matComRegion.at<uchar>(Rx, Ry) << "  " << (int)matBrightDiffBlackModelRegion.at<uchar>(Mx, My) << endl;
+										cout << (int)matMeanModelRegion.at<uchar>(Mx+1, My) << "   " << (int)matComRegion.at<uchar>(Rx+1, Ry) << "  " << (int)matBrightDiffBlackModelRegion.at<uchar>(Mx+1, My) << endl;
+
+									}
+								}
+								else { result.at<uchar>(Rx, Ry) = 180; count_nofeatureInreal_bianyuan++; }
+							}
+							else { result.at<uchar>(Rx, Ry) = 255; count_nofeatureInmodel_bianyuan++; }
+						}
+
+
+						/*if (abs(matComRegion.at<uchar>(Rx, Ry) - matMeanModelRegion.at<uchar>(Mx, My)) > pDetection->getBsubBValue(matBrightDiffBlackModelRegion, Mx, My, 2, 1))
+							if(pDetection->IsSuspectinBackground(matComRegion,matMeanModelRegion,Rx,Ry,Mx,My,matBrightDiffBlackModelRegion))
+							result.at<uchar>(Rx, Ry) = 255;*/
+					}
+					
+				}
