@@ -1,0 +1,174 @@
+/** sol11.16.c
+ ** ------------------------------------------------------------
+	A caching proxy time server is
+	sol11.16.c.
+	This program demonstrates two important ideas: a proxy and
+	caching.  This one program includes the code from timeserv.c
+	and timeclnt.c.  As a server, it receives requests at port 13000.
+	It gets the actual time by being a client and sending a request
+	to a time server on another machine.  That's the proxy part.
+
+	It then stores the time it gets in a buffer.  If another request
+	comes in soon, the server does not have to go back to the real
+	time server; it can use the time is has in its cache.  On the
+	other hand, if it has been a few seconds since the last request,
+	the time in the cache is old news.
+
+	Disk caching was discussed in Chapter 2.  How does this sort of
+	caching compare to caching in Chapter 2?
+
+ ** ------------------------------------------------------------
+ **
+ *   A time server proxy.  This program accepts connections on port
+ *   13000 and then acts a client to get the time from another server
+ *   at another port.  Those values are #define'd in, but could be
+ *   added as command line args.
+ *
+ *   This program caches the data.  It records the time at which it
+ *   read the time from the `real' server.   If a new request arrives
+ *   and the time is less than a second old, this server sends back
+ *   the information it has in its cache.
+ *
+ *   If the date is more than a second old, the server gets new,
+ *   fresh data, updates the cache, and then dispenses the data.
+ *
+ *   This program combines timeserv and timeclnt
+ *
+
+ *	build: cc sol11.16.c -o sol11.16
+ *
+ *   usage: sol11.16 timehost timeport
+ */
+
+#include  <stdio.h>
+#include  <stdlib.h>
+#include  <unistd.h>
+#include  <sys/types.h>
+#include  <sys/socket.h>
+#include  <netinet/in.h>
+#include  <netdb.h>
+#include  <time.h>
+#include  <sys/time.h>
+#include  <strings.h>
+
+#define PORTNUM 13000	//时间服务器的端口号
+#define HOSTLEN 256
+#define	oops(msg)	{perror(msg);exit(1);}
+
+#define SERVERHOST	"mit.edu"
+#define SERVERPORT	 13
+#define DATELEN	50
+
+#define STALE 1  //更新时间的频率
+
+int timediff(struct timeval *, struct timeval *); //对比时间的之间的差别
+char * thetime(char * host, int port);  //获得时间
+
+int main(int ac, char * av[])
+{
+	struct sockaddr_in saddr;  // 建立地址
+	struct hostent * hp;	//通过gethostbyname获得的信息
+	char hostname[HOSTLEN]; 
+	int sock_id, sock_fd;  //line id  ，file id
+	FILE * sock_fp;  //用流来进行输入输出
+	char * tshost; //主机名
+	int tsport;  //端口号
+
+	//检查命令行参数
+	if (ac != 3) {
+		fprintf(stderr, "usage:sol 11.16 timehost timeport\n");
+		exit(0);
+	}
+	tshost = av[1];
+	tsport = atoi(av[2]);
+	//寻求内核一个套接字
+	sock_id = socket(PF_INET, SOCK_STREAM, 0);    
+	if (sock_id == -1)  oops("socket");
+	//向套接字绑定一个地址
+	bzero((void*)&saddr, sizeof(saddr));  //清空结构体  防止污垢
+	gethostname(hostname, HOSTLEN);  //获得主机名
+	hp = gethostbyname(hostname);     //获得主机相关信息
+	bcopy((void*)hp->h_addr, (void*)&saddr.sin_addr, hp->h_length);  //填写地址
+	saddr.sin_port = htons(PORTNUM);  //填写端口号
+	saddr.sin_family = AF_INET; //填写族
+
+	if (bind(sock_id, (struct sockaddr*)&saddr, sizeof(saddr)) != 0)  oops("bind");  //绑定成功
+	if (listen(sock_id, 1) != 0)  oops("listen");  //开始监听
+
+	//主循环  接受  写  关闭
+
+	while (1) {
+		sock_fd = accept(sock_id, NULL, NULL);  //等到请求
+		printf("wow,you can really dance\n");
+		if (sock_fd == -1) oops("accept");
+		sock_fp = fdopen(sock_fd, "w");   //打开流  我们将要往这个套接字写的
+		if (sock_fp == NULL) oops("fdopen");
+		fprintf(sock_fp, "the time here is ..");
+		fprintf(sock_fp, "%s", thetime(tshost, tsport));  //输出时间信息 ，时间信息从另外一个服务器获得
+		fclose(sock_fp);
+	}
+	return 0;
+}
+
+/*
+* cache part is here
+*
+* The function  thetime()  returns a pointer to the time / date stored in
+* a cache.Before returning that pointer, the function checks if the
+* date in the cache is stale.If so, the cache is refreshed and then
+* the date is returned.
+*/
+
+char * thetime(char * host, int port)
+{
+	void get_time_from_server(char*, char *, int);
+	static char now[DATELEN] = ""; //缓存
+	static struct timeval lastmod = { 0,0 };  //时间锉
+	struct timeval rightnow;
+	struct timezone tz;
+	int age;
+
+	if (gettimeofday(&rightnow, &tz) == -1)  //获得当前系统的时间
+		return "ERROR";
+	printf("cache is %d seconds old", (age = timediff(&rightnow, &lastmod)));  //时间差
+	if (!*now || age > STALE) {
+		printf("[refilling]");  //重新获得信息
+		get_time_from_server(now, host, port);   
+		gettimeofday(&lastmod, &tz);  //重新获得当前的系统时间
+	}
+	putchar('\n');
+	return now;
+}
+//时间差比较函数
+int timediff(struct timeval *nowp, struct timeval * thenp)
+{
+	return ((1000000 * (nowp->tv_sec - thenp->tv_sec) + (nowp->tv_usec - thenp->tv_usec)) / 1000000);
+}
+
+//接下来就是主机作为客户端去请求时间的部分
+
+#define fail (s,b)	{sprintf(b,"error: %s",s);return ;}
+
+void get_time_from_server(char * buf, char * host, int port)
+{
+	struct sockaddr_in servadd;
+	struct hostent *hp;
+	int sock;
+	int messlen;
+	//申请一个套接字
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == -1) fail("socket", buf);
+	//向服务器发起连接之前绑定一些信息
+	bzero(&servadd, sizeof(servadd));
+	hp = gethostbyname(host);
+	if (hp == NULL) fail(host, port);
+	bcopy(hp->h_addr, (struct sockaddr*)&servadd.sin_addr, hp->length);  //开始绑定
+	servadd.sin_port = htons(port);
+	servadd.sin_family = AF_INET;
+	if (connet(sock, (struct sockaddr*)&seradd, sizeof(servadd)) != 0) fail("connet", buf);  //开始连接
+	//获得一些时间信息信息
+	messlen = read(sock, buf, DATELEN);
+	if (messlen == -1) fail("read",buf);
+	buf[messlen] = '\0';
+	close(sock);
+}
