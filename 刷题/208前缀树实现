@@ -1,0 +1,85 @@
+class TrieNode {
+public:
+	int path;
+	int end;
+	vector<TrieNode*>  nexts;
+	TrieNode()
+	{
+		path = 0;
+		end = 0;
+        nexts.resize(26);
+	}
+};
+
+class Trie {
+public:
+	TrieNode* root;
+	/** Initialize your data structure here. */
+	Trie() {
+		root = new TrieNode();
+	}
+
+	/** Inserts a word into the trie. */
+	void insert(string word) {
+		if (word=="") return;
+        int len=word.length();
+		vector<char> chs(len);
+		for (int i = 0; i < word.length(); i++)  chs[i] = word[i];
+		TrieNode * node = root;
+		int index = 0;
+		for (int i = 0; i < word.length(); i++)
+		{
+			index = chs[i] - 'a';
+			if (node->nexts[index] == NULL)
+			{
+				node->nexts[index] = new TrieNode();
+			}
+			node = node->nexts[index];
+			node->path++;
+		}
+		node->end++;
+	}
+
+	/** Returns if the word is in the trie. */
+	bool search(string word) {
+		if (word =="") return false;
+		int len=word.length();
+		vector<char> chs(len);
+		for (int i = 0; i < word.length(); i++)  chs[i] = word[i];
+		TrieNode * node = root;
+		int index = 0;
+		for (int i = 0; i < word.length(); i++)
+		{
+			index = chs[i] - 'a';
+			if (node->nexts[index] == NULL)
+			{
+				return false;
+			}
+			node = node->nexts[index];
+
+		}
+		if(node->end!=0)return true;
+        else return false;
+	}
+
+	/** Returns if there is any word in the trie that starts with the given prefix. */
+	bool startsWith(string prefix) {
+		if (prefix== "") return false;
+		int len=prefix.length();
+		vector<char> chs(len);
+		for (int i = 0; i < prefix.length(); i++)  chs[i] = prefix[i];
+		TrieNode * node = root;
+		int index = 0;
+		for (int i = 0; i < prefix.length(); i++)
+		{
+			index = chs[i] - 'a';
+			if (node->nexts[index] == NULL)
+			{
+				return false;
+			}
+			node = node->nexts[index];
+
+		}
+		return true;
+	}
+};
