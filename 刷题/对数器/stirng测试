@@ -1,0 +1,29 @@
+bool jungle(Solution1 ans1, Solution2 ans2)       //ans1解决方法1，ans2解决方法2
+{
+	int acount = 50000;                   //生成数组的数量
+	int acount1 = acount;
+	int len = 400;                        //数组的长度
+	vector<string> test;
+	while (acount != 0)
+	{
+		string a; 
+		a = "";
+		for (int i = 0; i < rand()%40; i++)   //数组的长度不定
+		{
+			int suiji = rand();                 
+			a =a+ (char)(suiji % 26 + 'a');     //生成字符串a
+		}
+		test.push_back(a);          
+		acount--;
+	}
+
+	for (int i = 0; i < acount1; i++)      //开始比对，正确就返回1，错误返回
+	{
+		if (ans1.validPalindrome(test[i]) != ans2.validPalindrome(test[i])) {
+    cout<<"不对的字符串为："<<test[i]<<endl;
+    return false;
+    }
+		//cout << test[i] << endl;
+	}
+	return true;
+}
