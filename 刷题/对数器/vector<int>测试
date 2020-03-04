@@ -1,0 +1,30 @@
+bool jungle(Solution1 ans1, Solution2 ans2)       //ans1解决方法1，ans2解决方法2
+{
+	int acount = 50000;                   //测试量大小的数量
+	int acount1 = acount;
+	int len = 400;                        //单个测试量的长度
+  int testround=50;                     //int数字的大小范围
+	vector<vector<int>> test;
+	while (acount != 0)
+	{
+    vector<int> a;
+		for (int i = 0; i < rand()%len; i++)   //数组的长度不定
+		{
+			int suiji = rand();                 
+			a.push_back(suiji %testround+1);     //生数组
+		}
+		test.push_back(a);          
+		acount--;
+	}
+
+	for (int i = 0; i < acount1; i++)      //开始比对，正确就返回1，错误返回
+	{
+		if (ans1.函数(test[i]) != ans2.函数(test[i])) {
+      cout<<"不对的数组为："<<endl;
+      for(int j=0;j<test[i].size();j++)
+      {cout<<test[i][j]<<"  "; }
+       return false;
+    }
+	}
+	return true;
+}
