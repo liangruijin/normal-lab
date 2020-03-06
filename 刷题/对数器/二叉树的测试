@@ -1,0 +1,107 @@
+//生成一棵树的原理：先进行序列化结构的生成，再通过反序列化得到一棵树  通过这些树进行对数
+
+//序列化与反序列化的程序    先序遍历为基础
+TreeNode* reconOrder(queue<string>& que)
+{
+	string value = que.front();
+	que.pop();
+	if (value == "#") return NULL;
+	TreeNode* head = new TreeNode(atoi(value.c_str()));
+	head->left = reconOrder(que);
+	head->right = reconOrder(que);
+	return head;
+
+}
+void split(string data, queue<string>& que)
+{
+	size_t pos = data.find("!");
+	size_t size = data.size();
+	while (pos != string::npos)
+	{
+		string x = data.substr(0, pos);
+		que.push(x);
+		size = size - x.size() - 1;
+		data = data.substr(pos + 1, size);
+		pos = data.find("!");
+	}
+}
+	// Encodes a tree to a single string.
+	string serialize(TreeNode* root) {
+		if (root == NULL) return "#!";
+		string res = to_string(root->val) + "!";
+		res += serialize(root->left);
+		res += serialize(root->right);
+		return res;
+	}
+
+	// Decodes your encoded data to tree.
+	TreeNode* deserialize(string data) {
+		queue<string> que;
+		split(data, que);
+		return reconOrder(que);
+	}
+  
+  
+  
+  //生成随机树 并进行自己写的程序与傻瓜程序进行对比jungle
+  	bool jungle(Solution1 ans1, Solution2 ans2)       //ans1解决方法1，ans2解决方法2
+	{
+		int acount = 20;                   //生成树的数量
+		int acount1 = acount;
+		int len = 7;                        //树的节点个数，可能比这个少，但一定不必这个多
+		vector<string> test;
+		srand(time(0));                  //种随机种子
+		while (acount != 0)
+		{
+			string a;
+			a = "";
+			int null_left = 1;
+			int nums = rand()% 8+1;  
+			a = a+to_string(nums) + "!";
+			null_left++;
+			for (int i = 0; i < max(5,rand()%len); )   //数组的长度不定
+			{
+				if (rand()/7*3 %2 == 1)  //打乱平衡性
+				{
+					a =a+ to_string(rand()% 8+1) + "!";
+					null_left++;
+					i++;
+				}
+				else {            //平衡性可以自己调节
+					if (null_left != 0) {
+						a =a+ "#!";
+						null_left--;
+						if (null_left == 0) break;
+					}
+					else break;
+				}
+
+			}
+			while (null_left != 0) {
+				a += "#!";
+				null_left--;
+			}
+			test.push_back(a);
+			acount--;
+		}
+
+		for (int i = 0; i < acount1; i++)      //开始比对，正确就返回1，错误返回
+		{
+			if (ans1.具体程序(deserialize(test[i])) != ans2.具体程序(deserialize(test[i]))) {
+				cout << "不对的字符串为：" << test[i] << endl;
+				printtree(deserialize(test[i]))     //打印错误的树，记住要调用打印树的程序
+				return false;
+			}
+
+			//  可以打印每一个树  但是要调用打印树的程序
+			//cout <<"tree"<<i<<":   "<< test[i] << endl;
+			//printtree(deserialize(test[i]));
+
+			//可以打印自己生成的序列
+			//cout << test[i] << endl;
+		}
+		return true;
+	}
+
+  
+ 
