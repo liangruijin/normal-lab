@@ -1,0 +1,38 @@
+class TreeNode
+{
+public:
+	TreeNode(int n):val(n),right(NULL),left(NULL){};
+	TreeNode* right;
+	TreeNode* left;
+	int val;
+};
+
+void printInOrder(TreeNode* head, int treeHeight, string to, int totallength);
+string getspace(int num);
+void printtree(TreeNode * head)
+{
+	printf("binnary tree\n");
+	printInOrder(head, 0, "H", 10);
+}
+
+void printInOrder(TreeNode* head, int treeHeight, string to, int totallength)
+{
+	if (head == NULL) { return; }
+	printInOrder(head->right, treeHeight + 1, "V", totallength);
+	string val = to + to_string(head->val) + to;
+	int valLength = val.length();
+	int leftspaceLength = (totallength - valLength) / 2;
+	int rightspaceLength = totallength - valLength - leftspaceLength;
+	val = getspace(leftspaceLength) + val + getspace(rightspaceLength);
+	cout << getspace(treeHeight*totallength) + val + "\n";
+	printInOrder(head->left, treeHeight + 1, "A", totallength);
+}
+
+string getspace(int num)
+{
+	string space = " ";
+	string buf = "";
+	for (int i = 0; i < num; i++)
+		buf += space;
+	return buf;
+}
