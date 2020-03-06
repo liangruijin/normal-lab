@@ -1,0 +1,97 @@
+class Node              //创建一个保存三个信息的类
+{
+public:
+	int posi;
+	int h;
+	bool isUp;
+	Node(bool flag, int position, int hight) :isUp(flag), posi(position), h(hight) {};  /初始化/
+	friend bool operator<(Node &a, Node &b);
+};
+bool operator<(Node &a, Node &b) {   //用于排序用的重载
+	if (a.posi < b.posi) return true;
+	if (a.posi > b.posi) return false;
+	if (a.isUp != b.isUp) {
+		return a.isUp ? false : true;
+	}
+	return false;
+}
+
+class Solution {
+public:
+	/**
+	 * @param buildings: A list of lists of integers
+	 * @return: Find the outline of those buildings
+	 */
+
+	vector<vector<int>> buildingOutline(vector<vector<int>> &buildings) {
+		vector<Node> nodes;
+		for (int i = 0; i < buildings.size(); i++) {
+			nodes.push_back(Node(true, buildings[i][0], buildings[i][2]));
+			nodes.push_back(Node(false, buildings[i][1], buildings[i][2]));
+		}  //把消息全部拆分
+		sort(nodes.begin(), nodes.end());      //排序
+		map<int, int> htmap;            //一个用于保存此时楼的（高度和 次数） 也可以换为结构
+		map<int, int> pmmap;            //用于保存  当前的（最大高度和位置）
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			if (nodes[i].isUp) {         //如果上升
+				if (htmap.count(nodes[i].h) != 1) htmap[nodes[i].h] = 1;  //如果没有记录，添加
+				else htmap[nodes[i].h] = htmap[nodes[i].h]+1;     //已经有了记录，次数加一
+			}
+			else {	  //下降
+				if (htmap.count(nodes[i].h) == 1) {    //如果有记录
+					if (htmap[nodes[i].h] == 1) htmap.erase(nodes[i].h);  //记录的高度的次数为1，那么清除
+					else htmap[nodes[i].h] = htmap[nodes[i].h] - 1;			//如果不为1，那么就减1
+				}
+			}
+			if (htmap.empty()) pmmap[nodes[i].posi] = 0;          //如果记录为空（没有高度），那么就当前位置添加0
+			else pmmap[nodes[i].posi] = (--htmap.end())->first;  //如果不为空，保存当前的位置以及最高高度
+		}
+		vector<vector<int>> res;   //结果
+		int start = 0;             //楼开始位置
+		int height = 0;				//楼的高度
+		for (map<int, int>::iterator itr = pmmap.begin(); itr != pmmap.end(); itr++)
+		{
+			int curPosition = itr->first;   //当前的位置
+			int curMaxHeight = itr->second;    //当前的高度
+			if (height != curMaxHeight) {     //高度发生了变化
+				if (height != 0) {      //且高度不为0.（也就是不是楼从0上升）
+					vector<int> newRecord;
+					newRecord.push_back(start);  //保存开始位置
+					newRecord.push_back(curPosition);  //保存现在的位置
+					newRecord.push_back(height);     //以及这一段的高度
+					res.push_back(newRecord);
+				}
+				start = curPosition;  //重新更新高度和位置
+				height = curMaxHeight;
+			}
+		}
+		return res;
+	}
+};
+
+
+int main()
+{
+	vector<int> a,b,c,d;
+	a.push_back(1); a.push_back(6); a.push_back(4);
+	b.push_back(2); b.push_back(4); b.push_back(3);
+	c.push_back(5); c.push_back(8); c.push_back(5);
+	d.push_back(7); d.push_back(10); d.push_back(3);
+	vector<vector<int>> yangben = { {4, 67, 187}, {3, 80, 65}, {49, 77, 117}, {67, 74, 9}, {6, 42, 92}, {48, 67, 69}, {10, 13, 58}, {47, 99, 152}, {66, 99, 53}, {66, 71, 34}, {27, 63, 2}, {35, 81, 116}, {47, 49, 10}, {68, 97, 175}, {20, 33, 53}, {24, 94, 20}, {74, 77, 155}, {39, 98, 144}, {52, 89, 84}, {13, 65, 222}, {24, 41, 75}, {16, 24, 142}, {40, 95, 4}, {6, 56, 188}, {1, 38, 219}, {19, 79, 149}, {50, 61, 174}, {4, 25, 14}, {4, 46, 225}, {12, 32, 215}, {57, 76, 47}, {11, 30, 179}, {88, 99, 99}, {2, 19, 228}, {16, 57, 114}, {31, 69, 58}, {12, 61, 198}, {70, 88, 131}, {7, 37, 42}, {5, 48, 211}, {2, 64, 106}, {49, 73, 204}, {76, 88, 26}, {58, 61, 215}, {39, 51, 125}, {13, 38, 48}, {74, 99, 145}, {4, 12, 8}, {12, 33, 161}, {61, 95, 190}, {16, 19, 196}, {3, 84, 8}, {5, 36, 118}, {82, 87, 40}, {8, 44, 212}, {15, 70, 222}, {16, 25, 176}, {9, 100, 74}, {38, 78, 99}, {23, 77, 43}, {45, 89, 229}, {7, 84, 163}, {48, 72, 1}, {31, 88, 123}, {35, 62, 190}, {21, 29, 41}, {37, 97, 81}, {7, 49, 78}, {83, 84, 132}, {33, 61, 27}, {18, 45, 1}, {52, 64, 4}, {58, 98, 57}, {14, 22, 1}, {9, 85, 200}, {50, 76, 147}, {54, 70, 201}, {5, 55, 97}, {9, 42, 125}, {31, 88, 146} };
+	//yangben.push_back(a); yangben.push_back(b); yangben.push_back(c); yangben.push_back(d);
+	Solution solution;
+	vector<vector<int>> res = solution.buildingOutline(yangben);
+	for (int i = 0;  i < res.size(); i++)
+	{
+		for (int j = 0; j < res[0].size(); j++)
+		{
+			cout << res[i][j] << "  ";
+
+		}
+		cout << endl;
+	}
+	int num;
+	cin >> num;
+	return 0;
+}
