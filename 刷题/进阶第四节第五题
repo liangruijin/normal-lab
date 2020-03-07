@@ -1,0 +1,39 @@
+#include"all.h"
+using namespace std;
+
+class Solution {
+public:
+	int mostEOR(vector<int> arr) {
+		int ans = 0;
+		int xor1 = 0;
+		vector<int> dp(arr.size());
+		map<int, int > hpmap;
+		hpmap[0] = -1;
+		for (int i = 0; i < arr.size(); i++) {
+			xor1 ^= arr[i];
+			if (hpmap.count(xor1) == 1) {  //说明我后面这一段是异或和 为0
+				int pre = hpmap[xor1];
+				int tmp = pre == -1 ? 1 : (dp[pre] + 1);  //那么就去找前面一段k的dp值+1
+				dp[i]=tmp;
+			}
+			if (i > 0) dp[i] = max(dp[i - 1], dp[i]);  //比较两个的最大值
+			hpmap[xor1] = i; //每次都要更新
+			ans = max(ans, dp[i]);
+		}
+		return ans;
+	}
+};
+
+
+int main()
+{
+	//int target = 4;
+	vector<int> nums{ 0,0,0,0,0,0 };
+	Solution a;
+	int res = a.mostEOR(nums);
+	cout << res << endl;
+	int num;
+	cin >> num;
+	return 0;
+
+}
