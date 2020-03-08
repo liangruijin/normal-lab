@@ -1,0 +1,155 @@
+#include"all.h"
+using namespace std;
+//跳表的简单实现
+
+class SkipListNode           //跳转表的节点类型
+{
+public:
+	int value;      //这儿的value 和key和map当中的相反，可以改过来，我懒得改了
+	string key;
+	vector<SkipListNode*> nextNodes;             //用来存放每一层下一个节点是什么
+	SkipListNode(int value,string key) :value(value) ,key(key){};  
+};
+
+class SkipList {
+public: 
+	SkipList() {
+		size = 0;
+		maxLeval = 0;  //最大层数  头部的节点随着最高的层数会变化
+		head = new SkipListNode(NULL,"");
+		head->nextNodes.push_back(NULL);
+	}
+
+	SkipListNode* getHead() {
+		return head;
+	}
+
+	void add(int newvalue,string key) {
+		if (!contains(newvalue)) {
+			size++;
+			int level = 0;
+			while (rand()%2==1)
+			{
+				level++;
+			}
+			while (level > maxLeval) {
+				head->nextNodes.push_back(NULL);
+				maxLeval++;
+			}     //最高层数随着新加入的节点改变
+			SkipListNode* newnode = new SkipListNode(newvalue,key);
+			SkipListNode* current = head;
+			int level_cur= maxLeval;  //从最高层开始搜索
+			do {
+				current = findNext(newvalue, current, level_cur);  //这儿是有问题，如果level一开始就等于1呢？
+				if (level_cur <= level)        //当当前层数变为level的时候才会开始添加
+				{
+					newnode->nextNodes.insert(newnode->nextNodes.begin(), current->nextNodes[level]); 
+					//current的当前层的下一个节点 添加到 新节点的next的0位置，后面的依次向后移
+					current->nextNodes[level] = newnode;//current的当前层的下一个节点变为新节点
+					level--;
+				}
+			} while (level_cur-- > 0);
+		}
+	}
+	void deleteOperator(int deletValue) {  //删除操作
+		if (contains(deletValue)) {
+			SkipListNode* deletenode = find(deletValue);  //找到当前要删除的节点
+			size--;
+			int level = maxLeval;
+			SkipListNode* current = head;
+			do {
+				current = findNext(deletValue, current, level);  //current等于要删除节点的前一个节点
+				if (deletenode->nextNodes.size() > level) {       //当层数减到deletenode的层数的时候才开始删
+					current->nextNodes[level] = deletenode->nextNodes[level];
+				}
+			} while (level-->0);
+			delete(deletenode);
+		}
+	}
+	
+	string back() {  //整个过程相当于找INT最大值是否在跳表当中
+		if (size > 0) {
+			int level = maxLeval;
+			SkipListNode* current = head;
+			do {
+				current = findNext(INT_MAX, current, level);
+			} while (level--);
+			return current->key;  
+		}
+		else return NULL;
+	}
+
+
+	SkipListNode* find(int e) {
+		return find(e, head, maxLeval);
+	}
+	
+	bool contains(int value) {
+		SkipListNode* node = find(value);
+		return node != NULL && node->value != NULL && (node->value == value);
+	}
+	int sizefor(){
+		return size;
+	}
+	string operator[](int value) {
+		if (contains(value)) {
+			return find(value)->key;
+		}
+		else return "no value in the skiplist";
+	}
+	
+private:
+	SkipListNode* head;
+	int maxLeval;
+	int size;
+
+	SkipListNode* find(int e, SkipListNode* current, int level) {
+		do {
+		current = findNext(e, current, level);	
+		} while (level--);
+		return current->nextNodes[0]; //这儿为什么是返回current的下一个节点，因为我们找5的话，其实current返回的是4这个节点。因为我们findNext找的依据是  value<=下一个value
+	}
+
+	SkipListNode* findNext(int e, SkipListNode* current, int level) {
+		SkipListNode * next = current->nextNodes[level];
+		while (next != NULL) {
+			int value = next->value;
+			if (e <= value) break;  //这儿是<=还是<，完全看find和delete接口的配合
+			current = next;
+			next = current->nextNodes[level];
+		}
+		return current;
+	}
+};
+
+
+int main() {
+	SkipList a;
+	a.add(1,"zhang"); 
+	a.add(8,"li");
+	a.add(5,"wang"); a.add(4,"zhao"); a.add(3,"chai"); a.add(2,"laing"); a.add(9,"huang"); 
+	a.add(7,"yang");
+	a.add(6,"da");
+	cout << a.sizefor() << endl;
+	cout <<"a.contains(10): "<< a.contains(10) << endl;
+	cout <<"a.contains(5): "<< a.contains(5) << endl;
+	cout << "a[5]: "<<a[5] << endl;
+	a.deleteOperator(5);
+	cout << "a.contains(5): " << a.contains(5) << endl;
+	cout << "a[5]: " << a[5] << endl;
+	a.add(5, "wang");
+	cout << "a.contains(5): " << a.contains(5) << endl;
+	cout << "a[5]: " << a[5] << endl;
+	
+	//cout << a.find(7)->key;
+
+	
+
+
+
+	int kdfjk;
+	cin >> kdfjk;
+	return 0;
+}
+
+
